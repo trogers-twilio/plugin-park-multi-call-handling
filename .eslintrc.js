@@ -31,6 +31,8 @@ module.exports = {
     'comma-dangle': 0,
     'react/jsx-fragments': 0,
     'no-console': 0,
-    'react/prop-types': 0
+    'react/prop-types': 0,
+    'react/jsx-props-no-spreading': 0,
+    'arrow-parens': 0
   },
 };
