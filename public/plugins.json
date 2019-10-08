@@ -1,0 +1,13 @@
+[
+  {
+    "name": "ParkMultiCallHandlingPlugin",
+    "version": "0.0.0",
+    "class": "ParkMultiCallHandlingPlugin",
+    "requires": [
+      {
+        "@twilio/flex-ui": "^1"
+      }
+    ],
+    "src": "http://localhost:3000/plugin-park-multi-call-handling.js"
+  }
+]
