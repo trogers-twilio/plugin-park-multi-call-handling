@@ -33,6 +33,10 @@ module.exports = {
     'no-console': 0,
     'react/prop-types': 0,
     'react/jsx-props-no-spreading': 0,
-    'arrow-parens': 0
+    'arrow-parens': 0,
+    'no-underscore-dangle': 0,
+    'import/prefer-default-export': 0,
+    'space-before-function-paren': 0,
+    'radix': 0,
   },
 };

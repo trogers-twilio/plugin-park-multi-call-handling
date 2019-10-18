@@ -1,14 +1,18 @@
 import * as React from 'react';
 import {
-  Actions,
   IconButton,
   TaskHelper,
   withTheme
 } from '@twilio/flex-ui';
+import ParkService from '../../services/ParkService';
 
 class ParkButton extends React.Component {
-  handleClick = () => {
+  handleClick = async () => {
+    const { task } = this.props;
+    const { workerSid } = task;
     console.log('Park button clicked');
+
+    await ParkService.parkTask(task, workerSid);
   }
 
   render() {

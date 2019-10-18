@@ -1,16 +1,107 @@
 import React from 'react';
-import { TaskListBaseItem, withTaskContext, withTheme } from '@twilio/flex-ui';
+import Tooltip from '@material-ui/core/Tooltip';
+import {
+  TaskHelper,
+  withTaskContext,
+  withTheme } from '@twilio/flex-ui';
+import {
+  ActionsContainer,
+  Container,
+  Content,
+  FirstLineContainer,
+  IconAreaContainer,
+  LowerArea,
+  SecondLineContainer,
+  TaskListIcon,
+  UpperArea
+} from './ParkTaskListItem.Components';
+import ParkService from '../../../services/ParkService';
+import utils from '../../../utils/utils';
+import FlexState from '../../../states/FlexState';
 
 class ParkTaskListItem extends React.PureComponent {
+  refreshTimer;
+
+  componentWillMount() {
+    this.refreshTimer = setInterval(() => this.forceUpdate(), 1000);
+  }
+
+  componentWillUnmount() {
+    if (this.refreshTimer !== undefined) {
+      clearInterval(this.refreshTimer);
+    }
+  }
+
+  handleContainerClick = () => {
+    const { parkedTask } = this.props;
+    console.debug('Container clicked for parked task', parkedTask.sid);
+  }
+
+  handleContainerDoubleClick = async () => {
+    const { parkedTask, task } = this.props;
+    const { workerSid, workerTasks } = FlexState;
+    console.debug('Container double clicked for parked task', parkedTask.sid);
+    const pickupResult = await ParkService.pickupParkedTask(parkedTask);
+    if (!pickupResult || !pickupResult.success) {
+      return;
+    }
+    const activeVoiceTask = Array.from(workerTasks.values())
+      .find(t => TaskHelper.isCallTask(t));
+    if (activeVoiceTask && activeVoiceTask.status === 'wrapping') {
+      activeVoiceTask.complete();
+    } else if (activeVoiceTask && activeVoiceTask.status === 'accepted') {
+      await activeVoiceTask.setAttributes({
+        ...activeVoiceTask.attributes,
+        autoCompleteTask: true
+      });
+      await ParkService.parkTask(activeVoiceTask, workerSid);
+    }
+  }
+
+  getTaskDuration = (dateCreated) => {
+    const duration = Date.now() - Date.parse(dateCreated);
+    return utils.msToTime(duration);
+  }
+
   render() {
-    const { key } = this.props;
+    const { parkedTask, theme } = this.props;
+    const { attributes, dateCreated } = parkedTask;
+    const { name } = attributes;
+    const duration = this.getTaskDuration(dateCreated);
     const itemProps = {
-      icon: 'GenericTask',
-      firstLine: key || 'First line text',
-      secondLine: 'Second line text',
+      icon: 'CallBold',
+      iconColor: theme.colors.holdColor,
+      firstLine: name || 'First line text',
+      secondLine: `Parked | ${duration}`,
+      extraInfo: 'none'
     };
     return (
-      <TaskListBaseItem {...itemProps} />
+      // <div>{parkTask.sid}</div>
+      <Container
+        className="Twilio-TaskListBaseItem"
+        iconColor={itemProps.iconColor}
+        onClick={this.handleContainerClick}
+        onDoubleClick={this.handleContainerDoubleClick}
+      >
+        <Tooltip title="Double-click to pickup" enterDelay={500}>
+          <UpperArea className="Twilio-TaskListBaseItem-UpperArea">
+            <IconAreaContainer className="Twilio-TaskListBaseItem-IconAreaContainer">
+              <TaskListIcon
+                className="Twilio-TaskListBaseItem-IconArea"
+                icon={itemProps.icon}
+              />
+            </IconAreaContainer>
+            <Content className="Twilio-TaskListBaseItem-Content">
+              <FirstLineContainer className="Twilio-TaskListBaseItem-FirstLine">
+                {itemProps.firstLine}
+              </FirstLineContainer>
+              <SecondLineContainer className="Twilio-TaskListBaseItem-SecondLine">
+                {itemProps.secondLine}
+              </SecondLineContainer>
+            </Content>
+          </UpperArea>
+        </Tooltip>
+      </Container>
     );
   }
 }

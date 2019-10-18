@@ -1,8 +1,10 @@
+/* eslint-disable no-param-reassign */
 import React from 'react';
 import { VERSION } from '@twilio/flex-ui';
 import { FlexPlugin } from 'flex-plugin';
-import reducers, { namespace } from './states';
 import ParkButton from './components/ParkButton/ParkButton';
+import ParkTaskList from './components/ParkTaskList/ParkTaskList';
+import './actions/CustomListeners';
 
 const PLUGIN_NAME = 'ParkMultiCallHandlingPlugin';
 
@@ -19,27 +21,30 @@ export default class ParkMultiCallHandlingPlugin extends FlexPlugin {
    * @param manager { import('@twilio/flex-ui').Manager }
    */
   init(flex, manager) {
-    // this.registerReducers(manager);
+    console.debug('Flex UI Version', VERSION);
+    flex.AgentDesktopView.defaultProps.showPanel2 = false;
 
     flex.CallCanvasActions.Content.add(
       <ParkButton
         key="park-button"
       />, { sortOrder: 2 }
     );
+
+    flex.TaskList.Content.add(
+      <ParkTaskList
+        key="park-task-list"
+      />, { sortOrder: 10 }
+    );
+
+    flex.NoTasksCanvas.Content.add(
+      <ParkTaskList
+        key="park-task-list"
+      />, { sortOrder: 10 }
+    );
+
+    flex.NoTasksCanvas.Content.add(
+      <div style={{ height: '20px' }} key="placeholder" />,
+      { sortOrder: -1 }
+    );
   }
-
-  /**
-   * Registers the plugin reducers
-   *
-   * @param manager { Flex.Manager }
-   */
-  // registerReducers(manager) {
-  //   if (!manager.store.addReducer) {
-  //     // eslint: disable-next-line
-  //     console.error(`You need FlexUI > 1.9.0 to use built-in redux; you are currently on ${VERSION}`);
-  //     return;
-  //   }
-
-  //   manager.store.addReducer(namespace, reducers);
-  // }
 }
