@@ -3,14 +3,13 @@ import Tooltip from '@material-ui/core/Tooltip';
 import {
   TaskHelper,
   withTaskContext,
-  withTheme } from '@twilio/flex-ui';
+  withTheme
+} from '@twilio/flex-ui';
 import {
-  ActionsContainer,
   Container,
   Content,
   FirstLineContainer,
   IconAreaContainer,
-  LowerArea,
   SecondLineContainer,
   TaskListIcon,
   UpperArea
@@ -38,7 +37,7 @@ class ParkTaskListItem extends React.PureComponent {
   }
 
   handleContainerDoubleClick = async () => {
-    const { parkedTask, task } = this.props;
+    const { parkedTask } = this.props;
     const { workerSid, workerTasks } = FlexState;
     console.debug('Container double clicked for parked task', parkedTask.sid);
     const pickupResult = await ParkService.pickupParkedTask(parkedTask);

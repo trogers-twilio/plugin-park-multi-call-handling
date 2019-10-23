@@ -38,5 +38,7 @@ module.exports = {
     'import/prefer-default-export': 0,
     'space-before-function-paren': 0,
     'radix': 0,
+    'arrow-body-style': 0,
+    'no-use-before-define': 0,
   },
 };

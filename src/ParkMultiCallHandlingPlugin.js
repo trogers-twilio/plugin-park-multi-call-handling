@@ -1,9 +1,10 @@
 /* eslint-disable no-param-reassign */
 import React from 'react';
-import { VERSION } from '@twilio/flex-ui';
+import { TaskHelper, VERSION } from '@twilio/flex-ui';
 import { FlexPlugin } from 'flex-plugin';
 import ParkButton from './components/ParkButton/ParkButton';
 import ParkTaskList from './components/ParkTaskList/ParkTaskList';
+import { ConferenceListenerManager } from './states/ConferencesState';
 import './actions/CustomListeners';
 
 const PLUGIN_NAME = 'ParkMultiCallHandlingPlugin';
@@ -22,7 +23,7 @@ export default class ParkMultiCallHandlingPlugin extends FlexPlugin {
    */
   init(flex, manager) {
     console.debug('Flex UI Version', VERSION);
-    flex.AgentDesktopView.defaultProps.showPanel2 = false;
+    ConferenceListenerManager.initialize();
 
     flex.CallCanvasActions.Content.add(
       <ParkButton

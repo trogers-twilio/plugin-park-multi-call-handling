@@ -11,7 +11,10 @@ class FlexState {
 
   static workerSid = this.flexState.worker.source.sid;
 
-  static get workerCallSid() { return this.flexState.phone.connection.source.parameters.CallSid; }
+  static get workerCallSid() {
+    const { connection } = this.flexState.phone;
+    return connection && connection.source.parameters.CallSid;
+  }
 
   static get workerTasks() { return this.flexState.worker.tasks; }
 

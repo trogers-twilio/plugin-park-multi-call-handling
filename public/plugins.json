@@ -20,5 +20,16 @@
       }
     ],
     "src": "http://localhost:3001/plugin-dialpad.js"
+  },
+  {
+    "name": "OutboundParticipantsCanvasPlugin",
+    "version": "0.0.0",
+    "class": "OutboundParticipantsCanvasPlugin",
+    "requires": [
+      {
+        "@twilio/flex-ui": "^1"
+      }
+    ],
+    "src": "http://localhost:3002/plugin-outbound-participants-canvas.js"
   }
 ]
