@@ -36,14 +36,15 @@ const stopReservationListeners = (reservation) => {
   }
 };
 
-const handleReservationCreated = (reservation) => {
+export const handleNewReservation = (reservation) => {
+  console.debug('new reservation', reservation);
   initReservationListeners(reservation);
   const { sid } = reservation;
   const task = TaskHelper.getTaskByTaskSid(sid);
   const { attributes } = task;
   const { conversations, direction } = attributes;
   const originalTaskSid = conversations && conversations.conversation_id;
-  const listenerTaskSid = originalTaskSid || task.sid;
+  const listenerTaskSid = originalTaskSid || task.taskSid;
   const syncClientType = (direction && direction === 'outbound')
     ? SyncClientTypes.sync
     : SyncClientTypes.insights;
@@ -57,6 +58,13 @@ const handleReservationCreated = (reservation) => {
       listenerTaskSid
     );
   }
+}
+
+const handleReservationCreated = (reservation) => {
+  handleNewReservation(reservation);
+  const { sid } = reservation;
+  const task = TaskHelper.getTaskByTaskSid(sid);
+  const { attributes } = task;
 
   if (attributes && attributes.autoAnswer) {
     Actions.invokeAction('AcceptTask', { task });
@@ -65,7 +73,8 @@ const handleReservationCreated = (reservation) => {
 };
 
 const handleReservationWrapup = async (reservation) => {
-  const { task } = reservation;
+  console.debug('wrapup reservation', reservation);
+  const task = reservation.task || reservation;
   const { attributes, age } = task;
   const {
     autoCompleteTask,
@@ -107,7 +116,8 @@ const handleReservationUpdated = (event, reservation) => {
     case 'canceled':
     case 'rescinded': {
       stopReservationListeners(reservation);
-      ConferenceListenerManager.stopListening(reservation.task.sid, `worker${reservation.sid}`);
+      const taskSid = reservation.task ? reservation.task.sid : reservation.taskSid;
+      ConferenceListenerManager.stopListening(taskSid, `worker${reservation.sid}`);
       delete uniqueReservationEvents[reservation.sid];
       break;
     }
@@ -117,14 +127,15 @@ const handleReservationUpdated = (event, reservation) => {
 };
 
 const initReservationListeners = (reservation) => {
-  stopReservationListeners(reservation);
+  const trueReservation = reservation.addListener ? reservation : reservation.source;
+  stopReservationListeners(trueReservation);
   const listeners = [];
   Object.values(ReservationEvents).forEach(event => {
-    const callback = () => handleReservationUpdated(event, reservation);
-    reservation.addListener(event, callback);
+    const callback = () => handleReservationUpdated(event, trueReservation);
+    trueReservation.addListener(event, callback);
     listeners.push({ event, callback });
   });
-  reservationListeners.set(reservation, listeners);
+  reservationListeners.set(trueReservation, listeners);
 };
 
 manager.events.addListener('pluginsLoaded', () => {

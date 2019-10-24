@@ -1,5 +1,6 @@
 /* eslint-disable max-classes-per-file */
 import {
+  Actions as FlexActions,
   ConferenceParticipant,
   Manager,
   StateHelper,
@@ -7,7 +8,7 @@ import {
 } from '@twilio/flex-ui';
 import TwilioSync from 'twilio-sync';
 import FlexState from './FlexState';
-import { SyncClientTypes } from '../utils/enums';
+import { ConferenceStatuses, SyncClientTypes, TaskStatuses } from '../utils/enums';
 
 const manager = Manager.getInstance();
 const flexStore = manager.store;
@@ -266,6 +267,21 @@ export class Actions {
     ConferenceListenerManager.initialize();
   }
 
+  static wrapupStaleTasks = (conferenceStatus, taskSid) => {
+    if (conferenceStatus !== ConferenceStatuses.ended) {
+      return;
+    }
+    FlexState.workerTasks.forEach(reservation => {
+      if (reservation.taskStatus === TaskStatuses.wrapping) {
+        return;
+      }
+      if (reservation.taskSid === taskSid) {
+        console.debug('wrapping reservation', reservation);
+        reservation.wrapUp();
+      }
+    });
+  }
+
   static handleConferenceUpdateImpl = () => {
     console.debug(`Custom ConferencesState handleConferenceUpdateImpl ${this.handleConferenceUpdateCalls.size}`);
     if (this.handleConferenceUpdateCalls.size === 0) {
@@ -286,6 +302,7 @@ export class Actions {
           const { value } = child;
           newConference.status = value.status;
           newConference.conferenceSid = value.conference_sid;
+          this.wrapupStaleTasks(newConference.status, sid);
         } else {
           console.debug('conference child key:', child.key);
           console.debug('conference child value:', child.value);

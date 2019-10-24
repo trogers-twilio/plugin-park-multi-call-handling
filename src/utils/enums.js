@@ -12,3 +12,15 @@ export const ReservationEvents = {
   completed: 'completed',
   wrapup: 'wrapup'
 };
+
+export const ConferenceStatuses = {
+  ended: 'ended',
+  started: 'started'
+};
+
+export const TaskStatuses = {
+  assigned: 'assigned',
+  completed: 'completed',
+  pending: 'pending',
+  wrapping: 'wrapping',
+};
