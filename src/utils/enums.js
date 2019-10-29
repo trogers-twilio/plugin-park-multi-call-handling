@@ -24,3 +24,8 @@ export const TaskStatuses = {
   pending: 'pending',
   wrapping: 'wrapping',
 };
+
+export const SegmentTypes = {
+  park: 'park',
+  transfer: 'transfer'
+};

@@ -2,16 +2,18 @@ import { Actions } from '@twilio/flex-ui';
 import ConferenceService from './ConferenceService';
 import FlexState from '../states/FlexState';
 import utils from '../utils/utils';
+import { SegmentTypes } from '../utils/enums';
 
-class ParkService {
+class TaskService {
   static _createParkTask = async (taskSid, targetWorker) => {
     const { baseUrl, userToken, workerSid } = FlexState;
-    const fetchUrl = `${baseUrl}/create-park-task`;
+    const fetchUrl = `${baseUrl}/create-segment-task`;
     const fetchBody = {
       Token: userToken,
       requestingWorker: workerSid,
+      segmentType: SegmentTypes.park,
       taskSid,
-      targetWorker,
+      target: targetWorker,
     };
 
     let createParkTaskResult;
@@ -91,4 +93,4 @@ class ParkService {
   }
 }
 
-export default ParkService;
+export default TaskService;

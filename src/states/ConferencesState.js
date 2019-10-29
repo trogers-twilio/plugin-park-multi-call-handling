@@ -276,7 +276,7 @@ export class Actions {
         return;
       }
       if (reservation.taskSid === taskSid) {
-        console.debug('wrapping reservation', reservation);
+        console.debug('wrapping reservation', reservation.status, reservation.taskStatus);
         reservation.wrapUp();
       }
     });
