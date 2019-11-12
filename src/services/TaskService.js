@@ -2,37 +2,15 @@ import { Actions, Notifications } from '@twilio/flex-ui';
 import ConferenceService from './ConferenceService';
 import FlexState from '../states/FlexState';
 import utils from '../utils/utils';
-import { SegmentTypes, SidPrefixes, TransferModes, CustomNotifications } from '../utils/enums';
+import {
+  SegmentTypes,
+  SidPrefixes,
+  TransferModes,
+  CustomNotifications
+} from '../utils/enums';
 
 class TaskService {
   // Private class methods
-  static _createParkTask = async (taskSid, targetWorker) => {
-    const { baseUrl, userToken, workerSid } = FlexState;
-    const fetchUrl = `${baseUrl}/create-segment-task`;
-    const fetchBody = {
-      Token: userToken,
-      requestingWorkerSid: workerSid,
-      segmentType: SegmentTypes.park,
-      taskSid,
-      targetSid: targetWorker,
-    };
-
-    let createParkTaskResult;
-    try {
-      const fetchResponse = await fetch(
-        fetchUrl,
-        utils.fetchOptions(fetchBody)
-      );
-      const fetchJson = await fetchResponse.json();
-      createParkTaskResult = fetchJson && JSON.parse(fetchJson);
-      console.debug('Park task created:', createParkTaskResult);
-    } catch (error) {
-      console.error(`Error fetching ${fetchUrl}.`, error);
-      createParkTaskResult = { success: false };
-    }
-    return createParkTaskResult;
-  }
-
   static _createSegmentTask = async (taskSid, targetSid, segmentType, targetName) => {
     const { baseUrl, userToken, workerSid } = FlexState;
     const fetchUrl = `${baseUrl}/create-segment-task`;
