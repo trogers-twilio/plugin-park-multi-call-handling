@@ -185,12 +185,6 @@ Actions.addListener('beforeAcceptTask', async (payload, abortOriginal) => {
     // TODO: Change setTimeout to something more robust to detect when agent joins conference
     setTimeout(() => Actions.invokeAction('UnholdCall', { sid, task }), 1000);
     abortOriginal();
-    return;
-  }
-
-  if (TaskHelper.isCallTask(task) && payload.conferenceOptions) {
-    payload.conferenceOptions.conferenceStatusCallback = `${FlexState.baseUrl}/simple-event-logger`;
-    payload.conferenceOptions.conferenceStatusCallbackEvent = 'start,end';
   }
 });
 
@@ -204,13 +198,6 @@ Actions.addListener('afterHangupCall', (payload) => {
     });
   }
 });
-
-// Actions.addListener('afterWrapupTask', (payload) => {
-//   const { task } = payload;
-//   if (task.attributes.autoCompleteTask) {
-//     task.complete();
-//   }
-// });
 
 Actions.addListener('beforeTransferTask', async (payload, abortOriginal) => {
   const { options, task, targetSid } = payload;
