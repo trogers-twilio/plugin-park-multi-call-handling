@@ -4,7 +4,7 @@ import {
   TaskHelper,
   withTheme
 } from '@twilio/flex-ui';
-import ParkService from '../../services/ParkService';
+import TaskService from '../../services/TaskService';
 
 class ParkButton extends React.Component {
   handleClick = async () => {
@@ -12,7 +12,7 @@ class ParkButton extends React.Component {
     const { workerSid } = task;
     console.log('Park button clicked');
 
-    await ParkService.parkTask(task, workerSid);
+    await TaskService.parkTask(task, workerSid);
   }
 
   render() {

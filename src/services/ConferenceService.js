@@ -29,7 +29,7 @@ class ConferenceService {
   }
 
   // Public functions
-  static setEndConferenceOnExit = (conference, participantSid, endConferenceOnExit) => {
+  static setEndConferenceOnExit = (conferenceSid, participantSid, endConferenceOnExit) => {
     return new Promise((resolve, reject) => {
       fetch(`${FlexState.baseUrl}/update-conference-participant`, {
         headers: {
@@ -38,7 +38,7 @@ class ConferenceService {
         method: 'POST',
         body: (
           `token=${FlexState.userToken}`
-          + `&conference=${conference}`
+          + `&conference=${conferenceSid}`
           + `&participant=${participantSid}`
           + `&endConferenceOnExit=${endConferenceOnExit}`
         )
@@ -82,7 +82,7 @@ class ConferenceService {
 
   static addConnectingParticipant = (conferenceSid, callSid, participantType) => {
     const flexState = Manager.getInstance().store.getState().flex;
-    const dispatch = Manager.getInstance().store.dispatch;
+    const { dispatch } = Manager.getInstance().store;
     const conferenceStates = flexState.conferences.states;
     const conferences = new Set();
 
@@ -94,7 +94,7 @@ class ConferenceService {
         console.log('Not the desired conference');
         conferences.add(currentConference);
       } else {
-        const participants = currentConference.participants;
+        const { participants } = currentConference;
         const fakeSource = {
           connecting: true,
           participant_type: participantType,

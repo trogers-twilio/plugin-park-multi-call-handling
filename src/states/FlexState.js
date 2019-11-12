@@ -1,4 +1,5 @@
 import { Actions, Manager } from '@twilio/flex-ui';
+import { SidPrefixes } from '../utils/enums';
 
 class FlexState {
   static _manager = Manager.getInstance();
@@ -21,6 +22,38 @@ class FlexState {
   static setComponentState = (name, state) => {
     Actions.invokeAction('SetComponentState', { name, state });
   }
+
+  static getInsightsQueueName = (sid) => new Promise((resolve) => {
+    const sidPrefix = sid && sid.slice(0, 2);
+    if (sidPrefix !== SidPrefixes.queue) {
+      resolve(undefined);
+      return;
+    }
+    this._manager.insightsClient.instantQuery('tr-queue')
+      .then(query => {
+        query.on('searchResult', items => {
+          const queue = items[sid];
+          resolve(queue && queue.queue_name);
+        });
+        query.search('');
+      });
+  })
+
+  static getInsightsWorkerName = (sid) => new Promise((resolve) => {
+    const sidPrefix = sid && sid.slice(0, 2);
+    if (sidPrefix !== SidPrefixes.worker) {
+      resolve(undefined);
+      return;
+    }
+    this._manager.insightsClient.instantQuery('tr-worker')
+      .then(query => {
+        query.on('searchResult', items => {
+          const worker = items[sid];
+          resolve(worker && worker.friendly_name);
+        });
+        query.search('');
+      });
+  })
 }
 
 export default FlexState;

@@ -23,19 +23,29 @@ const errorHandler = (error, message, response, callback) => {
 };
 
 const handleParkTask = async (context, event, callback, client, response, task) => {
-  const { requestingWorker, target, taskSid } = event;
+  const { requestingWorkerSid, targetSid, taskSid } = event;
+  const {
+    TWILIO_WORKSPACE_SID: workspaceSid,
+    TWILIO_PARK_WORKFLOW_SID: parkWorkflowSid
+  } = context;
 
   const taskAttributes = JSON.parse(task.attributes);
   const taskChannel = task.taskChannelUniqueName;
   const taskQueue = task.taskQueueFriendlyName;
 
+  const originalAutoAnswer = taskAttributes.originalAutoAnswer === undefined
+    ? taskAttributes.autoAnswer === true
+    : taskAttributes.originalAutoAnswer;
+
   const parkedTaskAttributes = {
     ...taskAttributes,
     autoAnswer: true,
     autoCompleteTask: undefined,
-    holdAssignment: requestingWorker === target,
-    selfPark: requestingWorker === target,
-    targetWorker: target,
+    holdAssignment: requestingWorkerSid === targetSid,
+    isCustomTask: true,
+    originalAutoAnswer,
+    selfPark: requestingWorkerSid === targetSid,
+    targetWorker: targetSid,
     conversations: {
       ...taskAttributes.conversations,
       queue_time: 0
@@ -53,10 +63,10 @@ const handleParkTask = async (context, event, callback, client, response, task) 
   let parkedTask;
   try {
     parkedTask = await client.taskrouter
-      .workspaces(context.TWILIO_WORKSPACE_SID)
+      .workspaces(workspaceSid)
       .tasks
       .create({
-        workflowSid: context.TWILIO_PARK_WORKFLOW_SID,
+        workflowSid: parkWorkflowSid,
         taskChannel,
         attributes: JSON.stringify(parkedTaskAttributes),
         priority: 1000
@@ -88,7 +98,12 @@ const getTaskQueueName = async (client, workspaceSid, taskQueueSid) => {
 };
 
 const handleTransferTask = async (context, event, callback, client, response, task) => {
-  const { target, taskSid } = event;
+  const {
+    requestingWorkerSid,
+    targetName,
+    targetSid,
+    taskSid
+  } = event;
   const {
     TWILIO_WORKSPACE_SID: workspaceSid,
     TWILIO_TRANSFER_WORKFLOW_SID: transferWorkflowSid
@@ -96,29 +111,28 @@ const handleTransferTask = async (context, event, callback, client, response, ta
 
   const taskAttributes = JSON.parse(task.attributes);
   const taskChannel = task.taskChannelUniqueName;
-  const taskQueue = task.taskQueueFriendlyName;
 
   const transferTaskAttributes = {
-    ...taskAttributes
+    ...taskAttributes,
+    autoAnswer: taskAttributes.originalAutoAnswer,
+    isCustomTask: true
   };
 
-  const targetSidPrefix = target && target.slice(0, 2);
+  const targetSidPrefix = targetSid && targetSid.slice(0, 2);
   switch (targetSidPrefix) {
     case SidPrefixes.queue: {
-      const targetTaskQueueName = await getTaskQueueName(client, workspaceSid);
+      delete transferTaskAttributes.targetWorker;
+      const targetTaskQueueName = targetName || await getTaskQueueName(client, workspaceSid);
       transferTaskAttributes.targetQueue = targetTaskQueueName;
-      transferTaskAttributes.conversations = {
-        ...transferTaskAttributes.conversations,
-        queue: targetTaskQueueName
-      };
+      if (!Array.isArray(transferTaskAttributes.workersToSkip)) {
+        transferTaskAttributes.workersToSkip = [requestingWorkerSid];
+      } else {
+        transferTaskAttributes.workersToSkip.push(requestingWorkerSid);
+      }
       break;
     }
     case SidPrefixes.worker: {
-      transferTaskAttributes.targetWorker = target;
-      transferTaskAttributes.conversations = {
-        ...transferTaskAttributes.conversations,
-        queue: taskQueue
-      };
+      transferTaskAttributes.targetWorker = targetSid;
       break;
     }
     default: {

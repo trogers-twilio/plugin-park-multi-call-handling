@@ -7,6 +7,7 @@ import ParkTaskList from './components/ParkTaskList/ParkTaskList';
 import { ConferenceListenerManager } from './states/ConferencesState';
 import FlexState from './states/FlexState';
 import { handleNewReservation } from './actions/CustomListeners';
+import { CustomNotifications } from './utils/enums';
 
 const PLUGIN_NAME = 'ParkMultiCallHandlingPlugin';
 
@@ -53,5 +54,13 @@ export default class ParkMultiCallHandlingPlugin extends FlexPlugin {
       <div style={{ height: '20px' }} key="placeholder" />,
       { sortOrder: -1 }
     );
+
+    manager.strings[`notification_${CustomNotifications.transferFailed}`] = '{{message}}';
+
+    flex.Notifications.registerNotification({
+      id: CustomNotifications.transferFailed,
+      type: flex.NotificationType.error,
+      content: `notification_${CustomNotifications.transferFailed}`
+    });
   }
 }

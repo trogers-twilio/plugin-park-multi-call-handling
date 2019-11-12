@@ -14,7 +14,7 @@ import {
   TaskListIcon,
   UpperArea
 } from './ParkTaskListItem.Components';
-import ParkService from '../../../services/ParkService';
+import TaskService from '../../../services/TaskService';
 import utils from '../../../utils/utils';
 import FlexState from '../../../states/FlexState';
 
@@ -40,7 +40,7 @@ class ParkTaskListItem extends React.PureComponent {
     const { parkedTask } = this.props;
     const { workerSid, workerTasks } = FlexState;
     console.debug('Container double clicked for parked task', parkedTask.sid);
-    const pickupResult = await ParkService.pickupParkedTask(parkedTask);
+    const pickupResult = await TaskService.pickupParkedTask(parkedTask);
     if (!pickupResult || !pickupResult.success) {
       return;
     }
@@ -53,7 +53,7 @@ class ParkTaskListItem extends React.PureComponent {
         ...activeVoiceTask.attributes,
         autoCompleteTask: true
       });
-      await ParkService.parkTask(activeVoiceTask, workerSid);
+      await TaskService.parkTask(activeVoiceTask, workerSid);
     }
   }
 

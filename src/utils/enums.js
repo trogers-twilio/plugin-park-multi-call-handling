@@ -29,3 +29,17 @@ export const SegmentTypes = {
   park: 'park',
   transfer: 'transfer'
 };
+
+export const TransferModes = {
+  cold: 'cold',
+  warm: 'warm'
+};
+
+export const SidPrefixes = {
+  queue: 'WQ',
+  worker: 'WK'
+};
+
+export const CustomNotifications = {
+  transferFailed: 'transferFailed'
+};

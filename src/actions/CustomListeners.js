@@ -3,6 +3,7 @@ import ParkTaskState from '../states/ParkTaskState';
 import FlexState from '../states/FlexState';
 import { ConferenceListenerManager } from '../states/ConferencesState';
 import { ReservationEvents, SyncClientTypes } from '../utils/enums';
+import TaskService from '../services/TaskService';
 
 const manager = Manager.getInstance();
 
@@ -58,7 +59,7 @@ export const handleNewReservation = (reservation) => {
       listenerTaskSid
     );
   }
-}
+};
 
 const handleReservationCreated = (reservation) => {
   handleNewReservation(reservation);
@@ -158,7 +159,8 @@ Actions.addListener('beforeAcceptTask', async (payload, abortOriginal) => {
   const {
     conversations,
     from,
-    selfPark
+    selfPark,
+    isCustomTask
   } = attributes;
 
   if (selfPark) {
@@ -172,24 +174,31 @@ Actions.addListener('beforeAcceptTask', async (payload, abortOriginal) => {
     await task.setAttributes(newAttributes);
   }
 
-  if (queueName.toLowerCase() === 'park') {
-    const originalConference = conversations && conversations.conversation_id;
+  const originalConference = conversations && conversations.conversation_id;
+  if (isCustomTask && originalConference) {
     const agentJoinUrl = `${FlexState.baseUrl}/agent-join-conference`
     + `?conferenceSid=${originalConference}`
     + `&endConferenceOnExit=${true}`;
 
     reservation.call(from, agentJoinUrl, { accept: true })
       .then(response => console.debug('reservation call response', response));
+    // TODO: Change setTimeout to something more robust to detect when agent joins conference
     setTimeout(() => Actions.invokeAction('UnholdCall', { sid, task }), 1000);
     abortOriginal();
+    return;
+  }
+
+  if (TaskHelper.isCallTask(task) && payload.conferenceOptions) {
+    payload.conferenceOptions.conferenceStatusCallback = `${FlexState.baseUrl}/simple-event-logger`;
+    payload.conferenceOptions.conferenceStatusCallbackEvent = 'start,end';
   }
 });
 
 Actions.addListener('afterHangupCall', (payload) => {
   const { task } = payload;
-  const { attributes, queueName } = task;
-  const { direction } = attributes;
-  if (direction === 'outbound' || queueName.toLowerCase() === 'park') {
+  const { attributes } = task;
+  const { isCustomTask } = attributes;
+  if (isCustomTask) {
     Actions.invokeAction('WrapupTask', {
       ...payload
     });
@@ -202,3 +211,15 @@ Actions.addListener('afterHangupCall', (payload) => {
 //     task.complete();
 //   }
 // });
+
+Actions.addListener('beforeTransferTask', async (payload, abortOriginal) => {
+  const { options, task, targetSid } = payload;
+  const { mode } = options;
+  const { attributes } = task;
+  const { isCustomTask } = attributes;
+
+  if (TaskHelper.isCallTask(task) && isCustomTask) {
+    await TaskService.transferTask(task, targetSid, mode);
+    abortOriginal();
+  }
+});
